@@ -376,8 +376,11 @@ public class HierarchyTest {
 
 这里加上了@DataProvider的方法必须返回一个Object[][]二维数组作为返回值的类型，并且内层嵌套数组的顺序和长度要与测试方法的参数列表相匹配。TestNG会遍历这个返回的数组的第一维，并循环调用应用这个dataProvider的测试套件。
 
-####Web自动化测试框架Selenium vs HttpUnit
-Web的自动化测试工具包有很多, 这里主要对开源产品Selenium进行分析。
+####Web自动化测试框架Selenium
+自动化功能测试在持续集成中扮演非常重要的角色。与单元测试不同，功能测试是从最终用户角度出发，以实际使用场景为依据的测试。传统的功能测试通常都是由手工完成，测试人员必须根据测试用例，逐步操作，逐条验证。手工测试的弊端很多，最主要的是其成本高昂，且随着产品功能的增多，测试人员压力越来越大，在回归测试中难以覆盖全面。功能测试的自动化就是为了解决这些问题而来的。
+
+
+Web的自动化测试工具有很多, 这里主要对开源产品Selenium进行分析。
 
 Selenium目前有两个版本，Selenium 1和Selenium 2. 
 
@@ -393,10 +396,77 @@ Selenium1是早先推出的版本，由两个主要部分,Selenium RC和Selenium
 
 //TODO IMAGE HERE
 
-Selenium 2，又成为Selenium WebDriver，提供了一套全新的自动化接口，并突破了Selenium 1的一些限制，剔除了中间Server，并且可以有多个测试套件执行器可供选择。但与Selenium IDE的结合目前还不是很好，更适合于有编程经验的测试人员手写测试脚本。
+Selenium 2，又成为Selenium WebDriver，提供了一套全新的自动化接口，并突破了Selenium 1的一些限制，剔除了中间Server，并且可以有多个测试套件执行器可供选择。 但与Selenium IDE的结合目前还不是很好，更适合于有编程经验的测试人员手写测试脚本。
 
-//TODO Sample Code for selenium 2.
 
+<center><small>Selenium2 示例脚本</small></center>
+
+```
+package org.openqa.selenium.example;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public class Selenium2Example  {
+    public static void main(String[] args) {
+        // Create a new instance of the Firefox driver
+        // Notice that the remainder of the code relies on the interface, 
+        // not the implementation.
+        WebDriver driver = new FirefoxDriver();
+
+        // And now use this to visit Google
+        driver.get("http://www.google.com");
+        // Alternatively the same thing can be done like this
+        // driver.navigate().to("http://www.google.com");
+
+        // Find the text input element by its name
+        WebElement element = driver.findElement(By.name("q"));
+
+        // Enter something to search for
+        element.sendKeys("Cheese!");
+
+        // Now submit the form. WebDriver will find the form for us from the element
+        element.submit();
+
+        // Check the title of the page
+        System.out.println("Page title is: " + driver.getTitle());
+        
+        // Google's search is rendered dynamically with JavaScript.
+        // Wait for the page to load, timeout after 10 seconds
+        (new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+            public Boolean apply(WebDriver d) {
+                return d.getTitle().toLowerCase().startsWith("cheese!");
+            }
+        });
+
+        // Should see: "cheese! - Google Search"
+        System.out.println("Page title is: " + driver.getTitle());
+        
+        //Close the browser
+        driver.quit();
+    }
+}
+```
+
+从上面代码中可以看出Selenium 2提供了一套Web测试的DSL，使得测试代码比较容易理解和维护。如果测试用例发生小范围的改变，比如文本修改等，都可以通过修改对应的测试脚本来维护，这是手写脚本相对录制脚本的优点。尽管如此，对于普通不熟悉Java编程的测试人员而言，手写测试脚本还是有一定难度，所以推荐安排专门的“测试开发人员”，或者让测试人员与开发人员结对来编写Selenium测试。
+
+自动化测试带来的最大好处是使得频繁的回归测试成为可能，最大限度的避免了功能退化。但是使用自动化测试也有一些前提条件，以下情况不适合使用自动化测试
+
+#####需求不稳定阶段
+
+  一个自动化测试脚本的价值，很大程度上取决于它被运行的次数。当需求在当前开发版本中并不稳定，经常发生变动时，这时候强制开发自动化测试脚本的话，会导致测试代码随着功能变化也需要不停的修改。这样花了很大力气写的测试脚本，用不了几天就又需要重写了，其成本与收益的比值就大幅度提高，这时候不但不能提高开发效率，反而可能导致开发效率的下降。
+  
+#####感觉相关性的测试用例
+
+  凡是跟人的感官有关的测试用例，都难以用自动化测试来覆盖，比如声音，图像，美观性，界面元素的摆放位置等等，与这些相关的测试，依然要靠手工来完成。
+
+#####临时性解决方案
+
+  有些时候，会提供一些临时解决方案来快速解决用户遇到的一些问题，这些方案通常不是最终的，但是会持续一到两个小版本。对于这样的功能来说，开发自动化测试脚本的收益是很低的。
 
 ####数据相关的测试
 
